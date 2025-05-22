@@ -39,3 +39,7 @@ CREATE View test_view as (
 );
 
 SELECT * FROM test_view;
+
+-- Simplifying complex queries
+-- Improved security
+-- Enhanced data abstraction
