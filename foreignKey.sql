@@ -15,6 +15,7 @@ CREATE Table post (
     id serial PRIMARY KEY,
     title TEXT NOT NULL,
     -- user_id INTEGER REFERENCES "user" (id) on delete set NULL
+    -- user_id INTEGER REFERENCES "user" (id) on delete cascade;
     user_id INTEGER REFERENCES "user" (id) on delete set DEFAULT DEFAULT 2
 );
 
