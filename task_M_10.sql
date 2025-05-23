@@ -196,9 +196,6 @@ CREATE View stn_view as (
 SELECT * FROM stn_view;
 
 -- Create a view that lists all students enrolled in any course with the enrollment date.
-SELECT * FROM course_enrollments;
-
-SELECT * FROM students;
 
 CREATE or REPLACE View stn_list as (
     SELECT
@@ -212,4 +209,54 @@ CREATE or REPLACE View stn_list as (
 
 -- DROP View stn_list;
 
+-- Query from your created views to verify the data.
 SELECT * FROM stn_list;
+
+-- Create a function that takes a student's score and returns a grade (e.g., A, B, C, F).
+CREATE OR REPLACE FUNCTION get_grade(s_score NUMERIC)
+RETURNS CHAR(1)
+LANGUAGE plpgsql
+AS
+$$
+ BEGIN
+    IF s_score >= 90 THEN
+        RETURN 'A';
+    ELSEIF s_score >= 80 THEN
+        RETURN 'B';
+    ELSEIF s_score >= 70 THEN
+        RETURN 'C';
+    ELSEIF s_score >= 60 THEN
+        RETURN 'D';
+    ELSE
+        RETURN 'F';
+    END IF;
+ END;
+$$
+
+
+
+-- DROP Function get_grade;
+
+SELECT student_name, score, get_grade (score) FROM students;
+
+-- Create a function that returns the full name and department of a student by ID.
+
+CREATE OR REPLACE FUNCTION get_stn_info(s_id INT)
+RETURNS TABLE(
+    student_name VARCHAR,
+    department_name VARCHAR
+)
+LANGUAGE PLPGSQL
+AS
+$$
+    BEGIN
+        RETURN Query
+        select s.student_name, d.department_name 
+        FROM students s JOIN departments d on s.department_id  = d.id
+        WHERE s.student_id = s_id;
+    END;
+$$;
+
+DROP Function get_stn_info;
+
+SELECT * FROM get_stn_info (1);
