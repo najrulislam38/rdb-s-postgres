@@ -385,6 +385,23 @@ INSERT INTO
     )
 VALUES ('Aliya Vat', 27, 3);
 
+-- Add an index to the score column in the students table.
+EXPLAIN ANALYSE SELECT * FROM students WHERE students.score = 99.90;
+
+CREATE INDEX idx_students_score ON students (score);
+
+-- Add a composite index on student_id and enrolled_on in the course_enrollments table.
+
+CREATE INDEX idx_course_enrollments_student_id_and_enrolled_on ON course_enrollments (student_id, enrolled_on);
+
+-- Compare query performance with and without indexes using EXPLAIN.
+EXPLAIN ANALYSE
+SELECT *
+FROM course_enrollments
+WHERE
+    student_id = 4
+    AND enrolled_on = '2025-01-25';
+
 SELECT * FROM students;
 
 SELECT * FROM departments;
