@@ -169,6 +169,8 @@ WHERE
 
 -- Retrieve departments with at least one student scoring above 90 (use EXISTS).
 
+--  Exists and in ase almost similar.
+
 SELECT *
 FROM departments
 WHERE
@@ -260,3 +262,131 @@ $$;
 DROP Function get_stn_info;
 
 SELECT * FROM get_stn_info (1);
+
+-- Write a stored procedure to update a student's department.
+
+CREATE OR REPLACE Procedure update_stn_dept(s_id INT, new_d_id INT)
+LANGUAGE plpgsql
+AS
+$$
+ BEGIN
+ UPDATE students
+ set department_id = new_d_id
+ WHERE student_id = s_id;
+ END;
+$$;
+
+CALL update_stn_dept (1, 3);
+
+-- Write a procedure to delete students who haven't enrolled in any course.
+
+SELECT student_id
+FROM students
+    JOIN course_enrollments USING (student_id);
+
+DELETE FROM students
+WHERE
+    student_id Not IN (
+        SELECT student_id
+        FROM students
+            JOIN course_enrollments USING (student_id)
+    );
+
+CREATE Procedure remove_student()
+LANGUAGE PLPGSQL
+AS
+$$
+ BEGIN 
+    DELETE FROM students 
+WHERE student_id Not IN  (
+    SELECT student_id FROM students JOIN course_enrollments USING(student_id)
+
+);
+ END;
+$$;
+
+CALL remove_student ()
+
+-- Create a trigger that automatically logs enrollment when a student is added to course_enrollments.
+
+CREATE Table enrollment_log (
+    log_id SERIAL PRIMARY KEY,
+    student_id INT,
+    course_title VARCHAR(50),
+    enrolled_on DATE,
+    log_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE OR REPLACE FUNCTION get_enroll_student()
+ RETURNS TRIGGER
+ LANGUAGE PLPGSQL
+ AS
+ $$
+  BEGIN
+
+  INSERT INTO enrollment_log(student_id, course_title, enrolled_on)
+    VALUES(NEW.student_id, NEW.course_title, NEW.enrolled_on);
+    RETURN NEW;
+
+  END;
+
+ $$;
+
+--
+
+--
+CREATE OR REPLACE TRIGGER trg_log_enroll_student
+AFTER INSERT 
+ON course_enrollments
+FOR EACH ROW
+EXECUTE FUNCTION get_enroll_student();
+
+INSERT INTO
+    course_enrollments (
+        student_id,
+        course_title,
+        enrolled_on
+    )
+VALUES (
+        1,
+        'Database Systems',
+        '2025-05-20'
+    );
+
+-- TRUNCATE Table enrollment_log;
+
+SELECT * FROM enrollment_log;
+
+-- Add a trigger that sets the score to 0 if a new student record is added without a score.
+
+CREATE OR REPLACE FUNCTION set_score_default()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+AS
+$$
+BEGIN
+    IF NEW.score IS NULL THEN
+        NEW.score := 0;
+    END IF;
+    RETURN NEW;
+END;
+$$;
+
+CREATE OR REPLACE TRIGGER trg_set_score_default
+BEFORE INSERT ON students
+FOR EACH ROW
+EXECUTE FUNCTION set_score_default();
+
+INSERT INTO
+    students (
+        student_name,
+        age,
+        department_id
+    )
+VALUES ('Aliya Vat', 27, 3);
+
+SELECT * FROM students;
+
+SELECT * FROM departments;
+
+SELECT * FROM course_enrollments;
