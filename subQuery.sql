@@ -1,3 +1,4 @@
+-- Active: 1747539716704@@localhost@5432@ph
 CREATE TABLE employees (
     employee_id SERIAL PRIMARY KEY,
     employee_name VARCHAR(50) NOT NULL,
